@@ -4,10 +4,10 @@ FROM node:${NODE_VERSION} AS build-env
 
 WORKDIR /la-legende-du-feur
 
-COPY src src
-COPY package*.json tsconfig.json ./
+COPY . .
 
 RUN npm install
+RUN npx prisma generate
 RUN npm run build
 
 ###########
@@ -18,7 +18,7 @@ WORKDIR /la-legende-du-feur
 
 ARG NODE_ENV=production
 
-COPY package*.json tsconfig.json ./
+COPY . .
 
 RUN npm install --omit=dev
 
@@ -32,10 +32,17 @@ RUN chown -R node:node /la-legende-du-feur
 
 COPY --chown=node:node --from=deps-env /la-legende-du-feur/node_modules node_modules
 COPY --chown=node:node --from=build-env /la-legende-du-feur/dist dist
-COPY --chown=node:node package*.json tsconfig.json ./
+COPY --chown=node:node prisma prisma
+COPY --chown=node:node package*.json tsconfig.json prisma.config.ts docker-entrypoint.sh ./
+RUN chmod +x ./docker-entrypoint.sh
 
 ARG NODE_ENV=production
 
 USER node
 
-CMD ["node", "."]
+VOLUME ["/data"]
+
+ENV DATABASE_URL="file:/data/storage.db"
+
+ENTRYPOINT ["./docker-entrypoint.sh"]
+

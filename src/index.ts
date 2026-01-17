@@ -1,5 +1,6 @@
 import 'dotenv/config';
 import { Client, Events, GatewayIntentBits } from 'discord.js';
+import { prisma } from './lib/prisma.js'
 
 const token: string = process.env.DISCORD_TOKEN!;
 
@@ -16,9 +17,35 @@ const chooseReply = (): string => {
 	return 'feur.';
 }
 
+async function recordTheFeur(id: string) {
+	const user = await prisma.user.findUnique({
+		where: {
+			id: id,
+		},
+	});
+	if (user) {
+		await prisma.user.update({
+			where: {
+				id: id,
+			},
+			data: {
+				feurCount: user.feurCount + 1,
+			},
+		});
+	} else {
+		await prisma.user.create({
+			data: {
+				id: id,
+				feurCount: 1,
+			},
+		});
+	}
+}
+
 client.on(Events.MessageCreate, async message => {
 	if (message.content.toLowerCase().includes('quoi')) {
 		await message.reply(chooseReply());
+		recordTheFeur(message.author.id);
 	}
 });
 
@@ -31,6 +58,11 @@ const gracefulShutdown = async (reason: string) => {
 			client.destroy();
 		} catch (e) {
 			console.warn('Error destroying Discord client', e);
+		}
+		try {
+			await prisma.$disconnect();
+		} catch (e) {
+			console.warn('Error disconnecting Prisma', e);
 		}
 		console.log('Shutdown complete');
 		process.exit(0);

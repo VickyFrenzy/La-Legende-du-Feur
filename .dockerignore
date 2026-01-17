@@ -1,0 +1,6 @@
+.*
+*.db
+*.md
+dist
+node_modules
+LICENSE
