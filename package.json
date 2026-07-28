@@ -27,7 +27,7 @@
   "devDependencies": {
     "@types/better-sqlite3": "^7.6.13",
     "@types/node": "^25.0.9",
-    "eslint": "^9.38.0",
+    "eslint": "^10.8.0",
     "prisma": "^7.2.0",
     "tsx": "^4.21.0",
     "typescript": "^5.9.3"
